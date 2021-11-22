@@ -1,11 +1,12 @@
 # coding: utf-8
 import asyncio
+from os import replace
 
 from graia.broadcast import Broadcast
 
 from graia.ariadne.app import Ariadne
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, Plain
+from graia.ariadne.message.element import At, Plain, Source
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 import random
@@ -31,13 +32,17 @@ query = Query()
 atlist = ["我是梦雨正在开发MirAi机器人喔~","叫我干嘛","你是什么东西？","你叫我是想给我钱嘛","别叫了别叫了"]
 admin_qq = 1430881243
 
-
 def digit(text):
     """
     传入一个字符串，返回字符串中的数字
     """
     return int("".join(list(filter(lambda text:text.isdigit(), text))))
 
+
+if table.search(query.name == 'adminqq') == []:
+    table.insert({'name':'adminqq','cont':admin_qq})
+if table.search(query.name == 'illegalBool') == []:
+    table.insert({'name':'illegalBool','cont':False})
 
 @bcc.receiver("GroupMessage")
 async def group_message_handler(app: Ariadne, group: Group, member: Member, message: MessageChain):
@@ -46,9 +51,14 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
     messageContentAt = None
     times = None
     adminList = []
+    illList = []
+    illBool = table.search(query.name == 'illegalBool')[0]['cont']
 
     for i in table.search(query.name == 'adminqq'):
         adminList.append(i['cont'])
+    
+    for i in table.search(query.name == 'Illegal'):
+        illList.append(i['cont'])
 
 ######################测试区域##########################
 
@@ -203,6 +213,63 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
             messageContent = "你没有权限喔~"
 
 #######################群管理结束#########################
+
+
+
+######################违禁词撤回开始######################
+
+    # 开启违禁词
+    if message.asDisplay() == "开启违禁检测":
+        if member.id in adminList or member.id == admin_qq:
+            table.update({'cont':True},query.name == 'illegalBool')
+            messageContent = '已开启违禁词检测！请注意发言喔~'
+
+    # 关闭违禁词
+    if message.asDisplay() == "关闭违禁检测":
+        if member.id in adminList or member.id == admin_qq:
+            table.update({'cont':False},query.name == 'illegalBool')
+            messageContent = '已关闭违禁词检测！大家畅所欲言吧~'
+
+    # 违禁词添加
+    if message.asDisplay().startswith('添加违禁词'):
+        if member.id in adminList or member.id == admin_qq:
+            illegal = message.asDisplay().replace("添加违禁词","").replace(" ","")
+            table.insert({'name':'Illegal','cont': illegal})
+            messageContent = '添加成功，新增违禁词：' + illegal
+
+    # 违禁词删除
+    if message.asDisplay().startswith('删除违禁词'):
+        if member.id in adminList or member.id == admin_qq:
+            illegal = message.asDisplay().replace("删除违禁词","").replace(" ","")
+            table.remove(query.cont == illegal)
+            messageContent = '删除成功，被删除违禁词：' + illegal
+
+    # 查看违禁词
+    if message.asDisplay() == "查看违禁词":
+        if illBool:
+            messageContent = "当前违禁词状态：开启\n违禁词列表：" + str(illList)
+        else:
+            messageContent = "当前违禁词状态：关闭\n违禁词列表：" + str(illList)
+
+    # 违禁词撤回
+    if illBool:
+        for illegal in illList:
+            if illegal in message.asDisplay():
+                text = message.asDisplay()
+                await app.recallMessage(
+                    message.get(Source)[0].id
+                )
+                await app.sendGroupMessage(
+                    group,
+                    MessageChain.create(
+                        Plain("发现违禁词！已经撤回违禁消息！\n触发者："),
+                        At(member.id),
+                        Plain("\n违禁内容：" + text.replace(illegal,len(illegal) * '*'))
+                    )
+                )
+
+######################违禁词撤回结束######################
+
 
 
 ######################消息发送开始########################
