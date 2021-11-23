@@ -289,7 +289,7 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
     if nlpBool:
         try:
             if message.asDisplay().startswith('[At:(2177895968)]') and '谁' not in  message.asDisplay():
-                cred = credential.Credential("AKIDjHZaMs8AyWnnX1EApEMDnCPL0PXOxFH2", "WklW0IJ4XjhOnvmMfiTyC9oDLCm57sMY")
+                cred = credential.Credential("腾讯云开发接口ID", "腾讯云开放接口Key")
                 httpProfile = HttpProfile()
                 httpProfile.endpoint = "nlp.tencentcloudapi.com"
 
