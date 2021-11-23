@@ -54,6 +54,8 @@ if table.search(query.name == 'nlpBool') == []:
 @bcc.receiver("GroupMessage")
 async def group_message_handler(app: Ariadne, group: Group, member: Member, message: MessageChain):
 
+
+######################初始区域##########################
     messageContent = None
     messageContentAt = None
     times = None
@@ -61,6 +63,9 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
     illList = []
     illBool = table.search(query.name == 'illegalBool')[0]['cont']
     nlpBool = table.search(query.name == 'nlpBool')[0]['cont']
+    aiId = "AKIDjHZaMs8AyWnnX1EApEMDnCPL0PXOxFH2" # 获取到的腾讯云接口ID
+    aiKey = "WklW0IJ4XjhOnvmMfiTyC9oDLCm57sMY" # 获取到的腾讯云接口Key
+    botQQ = '2177895968' # 机器人QQ号
 
     for i in table.search(query.name == 'adminqq'):
         adminList.append(i['cont'])
@@ -285,11 +290,10 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
             messageContent = '已关闭智能聊天！机器人不能和大家愉快的聊天了~'
 
     # 腾讯NLP智能聊天调用模块
-    
     if nlpBool:
         try:
-            if message.asDisplay().startswith('[At:(2177895968)]') and '谁' not in  message.asDisplay():
-                cred = credential.Credential("腾讯云开发接口ID", "腾讯云开放接口Key")
+            if message.asDisplay().startswith('[At:(' + botQQ + ')]') and '谁' not in  message.asDisplay():
+                cred = credential.Credential(aiId, aiKey)
                 httpProfile = HttpProfile()
                 httpProfile.endpoint = "nlp.tencentcloudapi.com"
 
@@ -299,13 +303,13 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
 
                 req = models.ChatBotRequest()
                 params = {
-                    "Query": message.asDisplay().replace('[At:(2177895968)]','').replace(' ','')
+                    "Query": message.asDisplay().replace('[At:(' + botQQ + ')]','').replace(' ','')
                 }
                 req.from_json_string(json.dumps(params))
 
                 resp = client.ChatBot(req)
                 messageContent = json.loads(resp.to_json_string())["Reply"]
-            elif  message.asDisplay().startswith('[At:(2177895968)]') and '谁' in  message.asDisplay():
+            elif  message.asDisplay().startswith('[At:(' + botQQ + ')]') and '谁' in  message.asDisplay():
                 messageContent = '我是梦雨正在开发的MirAi机器人喔~'
             
 
