@@ -17,7 +17,7 @@ _咦？这里竟然是一个由梦雨开发`MirAi`机器人的项目地址哎～
 
 ## 安装
 
-`pip install graia-ariadne`
+`python -m pip install graia-ariadne==0.4.0a15`
 和
 `pip install --upgrade tencentcloud-sdk-python`
 以及
