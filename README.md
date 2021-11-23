@@ -15,6 +15,15 @@ _咦？这里竟然是一个由梦雨开发`MirAi`机器人的项目地址哎～
 
 一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 及 [`graia-ariadne`](https://github.com/GraiaProject/Ariadne) 的 MirAi 机器人脚本.
 
+## 安装
+
+`pip install graia-ariadne`
+和
+`pip install --upgrade tencentcloud-sdk-python`
+以及
+`pip install tinydb`
+
+
 ## 更新日志
 <details>
   <summary>2021-11-23日更新</summary>
