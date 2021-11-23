@@ -1,5 +1,6 @@
 # coding: utf-8
 import asyncio
+import json
 from os import replace
 
 from graia.broadcast import Broadcast
@@ -9,7 +10,12 @@ from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain, Source
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
-import random
+from tencentcloud.common import credential
+from tencentcloud.common.profile.client_profile import ClientProfile
+from tencentcloud.common.profile.http_profile import HttpProfile
+from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from tencentcloud.nlp.v20190408 import nlp_client, models
+
 from tinydb import TinyDB
 from tinydb.queries import Query
 
@@ -29,7 +35,6 @@ db = TinyDB('text.json')
 table = db.table('Content')
 query = Query()
 
-atlist = ["我是梦雨正在开发MirAi机器人喔~","叫我干嘛","你是什么东西？","你叫我是想给我钱嘛","别叫了别叫了"]
 admin_qq = 1430881243
 
 def digit(text):
@@ -43,6 +48,8 @@ if table.search(query.name == 'adminqq') == []:
     table.insert({'name':'adminqq','cont':admin_qq})
 if table.search(query.name == 'illegalBool') == []:
     table.insert({'name':'illegalBool','cont':False})
+if table.search(query.name == 'nlpBool') == []:
+    table.insert({'name':'nlpBool','cont':False})
 
 @bcc.receiver("GroupMessage")
 async def group_message_handler(app: Ariadne, group: Group, member: Member, message: MessageChain):
@@ -53,6 +60,7 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
     adminList = []
     illList = []
     illBool = table.search(query.name == 'illegalBool')[0]['cont']
+    nlpBool = table.search(query.name == 'nlpBool')[0]['cont']
 
     for i in table.search(query.name == 'adminqq'):
         adminList.append(i['cont'])
@@ -68,15 +76,6 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
     #         group,
     #         MessageChain.create(str(digit(str(message.get(Plain)))))
     #     )
-
-    if message.asDisplay().startswith('[At:(2177895968)]'):
-        random.shuffle(atlist)
-        await app.sendGroupMessage(
-            group,
-            MessageChain.create(
-                Plain(atlist[0])
-            )
-        )
 
 #####################权限部分开始#######################
     
@@ -269,6 +268,53 @@ async def group_message_handler(app: Ariadne, group: Group, member: Member, mess
                 )
 
 ######################违禁词撤回结束######################
+
+
+######################智能聊天开始########################
+
+    # 开启智能聊天
+    if message.asDisplay() == '开启智能聊天':
+        if member.id in adminList or member.id == admin_qq:
+            table.update({'cont':True},query.name == 'nlpBool')
+            messageContent = '已开启智能聊天！快来一起和机器人玩耍吧~'
+
+    # 关闭智能聊天
+    if message.asDisplay() == '关闭智能聊天':
+        if member.id in adminList or member.id == admin_qq:
+            table.update({'cont':False},query.name == 'nlpBool')
+            messageContent = '已关闭智能聊天！机器人不能和大家愉快的聊天了~'
+
+    # 腾讯NLP智能聊天调用模块
+    
+    if nlpBool:
+        try:
+            if message.asDisplay().startswith('[At:(2177895968)]') and '谁' not in  message.asDisplay():
+                cred = credential.Credential("AKIDjHZaMs8AyWnnX1EApEMDnCPL0PXOxFH2", "WklW0IJ4XjhOnvmMfiTyC9oDLCm57sMY")
+                httpProfile = HttpProfile()
+                httpProfile.endpoint = "nlp.tencentcloudapi.com"
+
+                clientProfile = ClientProfile()
+                clientProfile.httpProfile = httpProfile
+                client = nlp_client.NlpClient(cred, "ap-guangzhou", clientProfile)
+
+                req = models.ChatBotRequest()
+                params = {
+                    "Query": message.asDisplay().replace('[At:(2177895968)]','').replace(' ','')
+                }
+                req.from_json_string(json.dumps(params))
+
+                resp = client.ChatBot(req)
+                messageContent = json.loads(resp.to_json_string())["Reply"]
+            elif  message.asDisplay().startswith('[At:(2177895968)]') and '谁' in  message.asDisplay():
+                messageContent = '我是梦雨正在开发的MirAi机器人喔~'
+            
+
+        except TencentCloudSDKException as err:
+            print(err)
+
+
+######################智能聊天结束########################
+
 
 
 
