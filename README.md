@@ -1,6 +1,6 @@
 **本项目适用于 mirai-api-http v2 的 graia-ariadne 4.0 及以上版本**.
 
-一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 和 [`graia-ariadne`](https://github.com/GraiaProject/Ariadne) 的 MirAi 机器人脚本.
+一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 及 [`graia-ariadne`](https://github.com/GraiaProject/Ariadne) 的 MirAi 机器人脚本.
 
 ## DreamRainBot
 咦？这里竟然是一个由梦雨开发`MirAi`机器人的项目地址哎～
